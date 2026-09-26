@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 /**
  * Flash message & template locals injector middleware
  */
@@ -8,5 +10,6 @@ module.exports = function (req, res, next) {
   res.locals.currentPath = req.path;
   res.locals.appName = 'GourmetHub';
   res.locals.currentYear = new Date().getFullYear();
+  res.locals.isDemoMode = mongoose.connection.readyState !== 1;
   next();
 };

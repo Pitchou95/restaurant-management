@@ -57,6 +57,13 @@
 </head>
 <body class="min-h-full flex flex-col bg-dark-bg text-slate-200">
   
+  <% if (typeof isDemoMode !== 'undefined' && isDemoMode) { %>
+    <div class="bg-gradient-to-r from-amber-950/60 via-amber-900/40 to-amber-950/60 border-b border-amber-500/20 text-amber-300 text-xs py-2 px-4 text-center flex items-center justify-center gap-2 shadow-sm">
+      <i class="fa-solid fa-sparkles text-amber-400"></i>
+      <span><strong>Live Preview Mode:</strong> Running with full sample catalog. To connect your persistent cloud database, update <code>MONGODB_URI</code> in Vercel.</span>
+    </div>
+  <% } %>
+
   <!-- Responsive Navigation Bar -->
   <%- include('./navbar') %>
 

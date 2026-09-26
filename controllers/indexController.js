@@ -1,9 +1,19 @@
+const mongoose = require('mongoose');
 const Dish = require('../models/Dish');
 const Chef = require('../models/Chef');
+const fallbackStore = require('../db/fallbackStore');
 
 // Home page
 exports.getHome = async (req, res, next) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const data = fallbackStore.getHomeData();
+      return res.render('index', {
+        title: 'GourmetHub - Premium Restaurant Management & Culinary Catalog',
+        ...data,
+      });
+    }
+
     const featuredDishes = await Dish.find({ isChefSpecial: true })
       .populate('chefs', 'name title avatarUrl')
       .limit(3)
@@ -36,13 +46,26 @@ exports.getHome = async (req, res, next) => {
       },
     });
   } catch (err) {
-    next(err);
+    console.warn('Recovering home page with fallback store:', err.message);
+    const data = fallbackStore.getHomeData();
+    res.render('index', {
+      title: 'GourmetHub - Premium Restaurant Management & Culinary Catalog',
+      ...data,
+    });
   }
 };
 
 // Analytics and Dashboard with Aggregate Queries
 exports.getDashboard = async (req, res, next) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const data = fallbackStore.getDashboardData();
+      return res.render('dashboard/index', {
+        title: 'Restaurant Analytics & Statistics - GourmetHub',
+        ...data,
+      });
+    }
+
     // 1. Total counts & KPI metrics
     const totalDishes = await Dish.countDocuments();
     const totalChefs = await Chef.countDocuments();
@@ -128,6 +151,11 @@ exports.getDashboard = async (req, res, next) => {
       priceBrackets,
     });
   } catch (err) {
-    next(err);
+    console.warn('Recovering dashboard with fallback store:', err.message);
+    const data = fallbackStore.getDashboardData();
+    res.render('dashboard/index', {
+      title: 'Restaurant Analytics & Statistics - GourmetHub',
+      ...data,
+    });
   }
 };

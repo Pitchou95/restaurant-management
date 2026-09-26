@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 
 let mongoMemoryServer = null;
+let lastConnectionAttempt = 0;
+let lastConnectionError = null;
+const RETRY_COOLDOWN_MS = 30000; // 30 seconds cooldown before retrying if DB failed
 
 /**
  * Connect to MongoDB with connection reuse for serverless (Vercel)
@@ -12,17 +15,25 @@ async function connectDB() {
     return mongoose.connection;
   }
 
+  // Throttle connection retries if previously failed to prevent request latency
+  if (lastConnectionError && Date.now() - lastConnectionAttempt < RETRY_COOLDOWN_MS) {
+    throw lastConnectionError;
+  }
+
   // Check both MONGODB_URI and MONGO_URI
   const uri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/restaurant_db';
 
+  lastConnectionAttempt = Date.now();
   try {
     console.log('Connecting to MongoDB...');
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 2500,
     });
     console.log('MongoDB connected successfully.');
+    lastConnectionError = null;
     return mongoose.connection;
   } catch (err) {
+    lastConnectionError = err;
     console.warn(`Could not connect to MongoDB instance: ${err.message}`);
 
     // In production or on Vercel, do NOT attempt in-memory server (not supported in serverless)

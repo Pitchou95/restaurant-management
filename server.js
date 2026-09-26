@@ -64,14 +64,15 @@ app.set('views', path.join(__dirname, 'views'));
 // Inject Flash & Global Context into all Templates
 app.use(flashMiddleware);
 
-// Ensure Database is connected before processing any requests (essential for Vercel Serverless)
+// Ensure Database connection is attempted before processing requests without blocking or crashing
 app.use(async (req, res, next) => {
   try {
     await connectDB();
-    next();
   } catch (err) {
-    next(err);
+    // Log warning and proceed so controllers can serve from fallbackStore instead of 500 error
+    console.warn(`[GourmetHub Notice] MongoDB offline (${err.message}). Serving from fallback store.`);
   }
+  next();
 });
 
 // Mount Application Routes

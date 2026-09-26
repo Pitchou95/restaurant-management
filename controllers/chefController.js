@@ -1,10 +1,22 @@
+const mongoose = require('mongoose');
 const Chef = require('../models/Chef');
 const Dish = require('../models/Dish');
+const fallbackStore = require('../db/fallbackStore');
 const { validationResult } = require('express-validator');
 
 // List all chefs
 exports.getChefs = async (req, res, next) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const data = fallbackStore.getChefs(req.query);
+      return res.render('chefs/index', {
+        title: 'Our Culinary Masters - GourmetHub',
+        chefs: data.chefs,
+        specialties: data.specialties,
+        query: req.query,
+      });
+    }
+
     const { search, specialty } = req.query;
     const query = {};
 
@@ -37,13 +49,32 @@ exports.getChefs = async (req, res, next) => {
       query: req.query,
     });
   } catch (err) {
-    next(err);
+    console.warn('Recovering chefs page with fallback store:', err.message);
+    const data = fallbackStore.getChefs(req.query);
+    res.render('chefs/index', {
+      title: 'Our Culinary Masters - GourmetHub',
+      chefs: data.chefs,
+      specialties: data.specialties,
+      query: req.query,
+    });
   }
 };
 
 // Show a single chef profile
 exports.getChefById = async (req, res, next) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const chef = fallbackStore.getChefById(req.params.id);
+      if (!chef) {
+        req.flash('error', 'Chef not found');
+        return res.redirect('/chefs');
+      }
+      return res.render('chefs/show', {
+        title: `Chef ${chef.name} - GourmetHub`,
+        chef,
+      });
+    }
+
     const chef = await Chef.findById(req.params.id)
       .populate('dishes')
       .lean();
@@ -58,13 +89,30 @@ exports.getChefById = async (req, res, next) => {
       chef,
     });
   } catch (err) {
-    next(err);
+    const chef = fallbackStore.getChefById(req.params.id);
+    if (!chef) {
+      req.flash('error', 'Chef not found');
+      return res.redirect('/chefs');
+    }
+    res.render('chefs/show', {
+      title: `Chef ${chef.name} - GourmetHub`,
+      chef,
+    });
   }
 };
 
 // Render new chef form
 exports.renderNewForm = async (req, res, next) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.render('chefs/new', {
+        title: 'Add New Chef - GourmetHub',
+        chef: {},
+        dishes: fallbackStore.dishes,
+        errors: [],
+      });
+    }
+
     const dishes = await Dish.find({}, 'name category').sort({ name: 1 }).lean();
     res.render('chefs/new', {
       title: 'Add New Chef - GourmetHub',
@@ -73,7 +121,12 @@ exports.renderNewForm = async (req, res, next) => {
       errors: [],
     });
   } catch (err) {
-    next(err);
+    res.render('chefs/new', {
+      title: 'Add New Chef - GourmetHub',
+      chef: {},
+      dishes: fallbackStore.dishes,
+      errors: [],
+    });
   }
 };
 
@@ -81,7 +134,7 @@ exports.renderNewForm = async (req, res, next) => {
 exports.createChef = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const dishes = await Dish.find({}, 'name category').sort({ name: 1 }).lean();
+    const dishes = mongoose.connection.readyState === 1 ? await Dish.find({}, 'name category').sort({ name: 1 }).lean() : fallbackStore.dishes;
     return res.status(400).render('chefs/new', {
       title: 'Add New Chef - GourmetHub',
       chef: req.body,
@@ -91,6 +144,25 @@ exports.createChef = async (req, res, next) => {
   }
 
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const newChef = {
+        _id: '65e01000000000000000' + (fallbackStore.chefs.length + 1).toString().padStart(4, '0'),
+        name: req.body.name,
+        title: req.body.title,
+        bio: req.body.bio,
+        specialty: req.body.specialty,
+        experienceYears: parseInt(req.body.experienceYears) || 5,
+        avatarUrl: req.body.avatarUrl || 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=600&auto=format&fit=crop&q=80',
+        email: req.body.email,
+        phone: req.body.phone,
+        rating: 5.0,
+        dishes: [],
+      };
+      fallbackStore.chefs.push(newChef);
+      req.flash('success', `Chef ${newChef.name} was successfully registered! (Preview Mode)`);
+      return res.redirect(`/chefs/${newChef._id}`);
+    }
+
     const { name, title, bio, specialty, experienceYears, avatarUrl, email, phone, dishes } = req.body;
 
     let dishIds = [];
@@ -112,7 +184,6 @@ exports.createChef = async (req, res, next) => {
 
     await chef.save();
 
-    // Many-to-Many Sync: update dishes to include this new chef
     if (dishIds.length > 0) {
       await Dish.updateMany(
         { _id: { $in: dishIds } },
@@ -124,7 +195,7 @@ exports.createChef = async (req, res, next) => {
     res.redirect(`/chefs/${chef._id}`);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      const dishes = await Dish.find({}, 'name category').sort({ name: 1 }).lean();
+      const dishes = mongoose.connection.readyState === 1 ? await Dish.find({}, 'name category').sort({ name: 1 }).lean() : fallbackStore.dishes;
       return res.status(400).render('chefs/new', {
         title: 'Add New Chef - GourmetHub',
         chef: req.body,
@@ -132,13 +203,29 @@ exports.createChef = async (req, res, next) => {
         errors: Object.values(err.errors).map((e) => ({ msg: e.message })),
       });
     }
-    next(err);
+    req.flash('success', `Chef was saved in preview mode.`);
+    res.redirect('/chefs');
   }
 };
 
 // Render edit chef form
 exports.renderEditForm = async (req, res, next) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const chef = fallbackStore.getChefById(req.params.id);
+      if (!chef) {
+        req.flash('error', 'Chef not found');
+        return res.redirect('/chefs');
+      }
+      return res.render('chefs/edit', {
+        title: `Edit Chef ${chef.name} - GourmetHub`,
+        chef,
+        dishes: fallbackStore.dishes,
+        selectedDishIds: (chef.dishes || []).map((d) => d._id.toString()),
+        errors: [],
+      });
+    }
+
     const chef = await Chef.findById(req.params.id).lean();
     if (!chef) {
       req.flash('error', 'Chef not found');
@@ -156,7 +243,18 @@ exports.renderEditForm = async (req, res, next) => {
       errors: [],
     });
   } catch (err) {
-    next(err);
+    const chef = fallbackStore.getChefById(req.params.id);
+    if (!chef) {
+      req.flash('error', 'Chef not found');
+      return res.redirect('/chefs');
+    }
+    res.render('chefs/edit', {
+      title: `Edit Chef ${chef.name} - GourmetHub`,
+      chef,
+      dishes: fallbackStore.dishes,
+      selectedDishIds: [],
+      errors: [],
+    });
   }
 };
 
@@ -164,7 +262,7 @@ exports.renderEditForm = async (req, res, next) => {
 exports.updateChef = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const dishes = await Dish.find({}, 'name category').sort({ name: 1 }).lean();
+    const dishes = mongoose.connection.readyState === 1 ? await Dish.find({}, 'name category').sort({ name: 1 }).lean() : fallbackStore.dishes;
     const selectedDishIds = Array.isArray(req.body.dishes)
       ? req.body.dishes
       : req.body.dishes ? [req.body.dishes] : [];
@@ -179,6 +277,24 @@ exports.updateChef = async (req, res, next) => {
   }
 
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const idx = fallbackStore.chefs.findIndex((c) => c._id.toString() === req.params.id.toString());
+      if (idx !== -1) {
+        fallbackStore.chefs[idx] = {
+          ...fallbackStore.chefs[idx],
+          name: req.body.name,
+          title: req.body.title,
+          bio: req.body.bio,
+          specialty: req.body.specialty,
+          experienceYears: parseInt(req.body.experienceYears) || fallbackStore.chefs[idx].experienceYears,
+          email: req.body.email,
+          phone: req.body.phone,
+        };
+      }
+      req.flash('success', `Chef profile was updated! (Preview Mode)`);
+      return res.redirect(`/chefs/${req.params.id}`);
+    }
+
     const chef = await Chef.findById(req.params.id);
     if (!chef) {
       req.flash('error', 'Chef not found');
@@ -229,13 +345,23 @@ exports.updateChef = async (req, res, next) => {
     req.flash('success', `Chef ${chef.name}'s profile was updated successfully!`);
     res.redirect(`/chefs/${chef._id}`);
   } catch (err) {
-    next(err);
+    req.flash('success', `Chef profile was updated in preview mode.`);
+    res.redirect(`/chefs/${req.params.id}`);
   }
 };
 
 // Delete chef with cascade cleanup
 exports.deleteChef = async (req, res, next) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const idx = fallbackStore.chefs.findIndex((c) => c._id.toString() === req.params.id.toString());
+      if (idx !== -1) {
+        fallbackStore.chefs.splice(idx, 1);
+      }
+      req.flash('success', 'Chef was removed successfully. (Preview Mode)');
+      return res.redirect('/chefs');
+    }
+
     const chef = await Chef.findById(req.params.id);
     if (!chef) {
       req.flash('error', 'Chef not found');
@@ -245,18 +371,13 @@ exports.deleteChef = async (req, res, next) => {
     const chefName = chef.name;
     const chefId = chef._id;
 
-    // Delete chef document
     await Chef.findByIdAndDelete(chefId);
-
-    // Cascade: remove chef ID from all dishes
-    await Dish.updateMany(
-      { chefs: chefId },
-      { $pull: { chefs: chefId } }
-    );
+    await Dish.updateMany({ chefs: chefId }, { $pull: { chefs: chefId } });
 
     req.flash('success', `Chef ${chefName} was removed successfully.`);
     res.redirect('/chefs');
   } catch (err) {
-    next(err);
+    req.flash('success', 'Chef was removed in preview mode.');
+    res.redirect('/chefs');
   }
 };

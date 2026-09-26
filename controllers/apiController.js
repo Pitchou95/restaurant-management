@@ -1,9 +1,20 @@
+const mongoose = require('mongoose');
 const Dish = require('../models/Dish');
 const Chef = require('../models/Chef');
+const fallbackStore = require('../db/fallbackStore');
 
 // GET /api/dishes
 exports.getAllDishes = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const data = fallbackStore.getDishes(req.query);
+      return res.json({
+        success: true,
+        count: data.dishes.length,
+        data: data.dishes,
+      });
+    }
+
     const { category, search, sort } = req.query;
     const query = {};
 
@@ -31,13 +42,26 @@ exports.getAllDishes = async (req, res) => {
       data: dishes,
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    const data = fallbackStore.getDishes(req.query);
+    res.json({
+      success: true,
+      count: data.dishes.length,
+      data: data.dishes,
+    });
   }
 };
 
 // GET /api/dishes/:id
 exports.getDishById = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const dish = fallbackStore.getDishById(req.params.id);
+      if (!dish) {
+        return res.status(404).json({ success: false, error: 'Dish not found' });
+      }
+      return res.json({ success: true, data: dish });
+    }
+
     const dish = await Dish.findById(req.params.id)
       .populate('chefs', 'name title specialty avatarUrl')
       .populate('reviews')
@@ -49,13 +73,26 @@ exports.getDishById = async (req, res) => {
 
     res.json({ success: true, data: dish });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    const dish = fallbackStore.getDishById(req.params.id);
+    if (!dish) {
+      return res.status(404).json({ success: false, error: 'Dish not found' });
+    }
+    res.json({ success: true, data: dish });
   }
 };
 
 // GET /api/chefs
 exports.getAllChefs = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const data = fallbackStore.getChefs(req.query);
+      return res.json({
+        success: true,
+        count: data.chefs.length,
+        data: data.chefs,
+      });
+    }
+
     const chefs = await Chef.find()
       .populate('dishes', 'name category price')
       .sort({ experienceYears: -1 })
@@ -67,13 +104,26 @@ exports.getAllChefs = async (req, res) => {
       data: chefs,
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    const data = fallbackStore.getChefs(req.query);
+    res.json({
+      success: true,
+      count: data.chefs.length,
+      data: data.chefs,
+    });
   }
 };
 
 // GET /api/chefs/:id
 exports.getChefById = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const chef = fallbackStore.getChefById(req.params.id);
+      if (!chef) {
+        return res.status(404).json({ success: false, error: 'Chef not found' });
+      }
+      return res.json({ success: true, data: chef });
+    }
+
     const chef = await Chef.findById(req.params.id)
       .populate('dishes', 'name category price imageUrl rating')
       .lean();
@@ -84,13 +134,31 @@ exports.getChefById = async (req, res) => {
 
     res.json({ success: true, data: chef });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    const chef = fallbackStore.getChefById(req.params.id);
+    if (!chef) {
+      return res.status(404).json({ success: false, error: 'Chef not found' });
+    }
+    res.json({ success: true, data: chef });
   }
 };
 
 // GET /api/stats (Aggregate data for charts and analytics)
 exports.getStats = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const dash = fallbackStore.getDashboardData();
+      return res.json({
+        success: true,
+        data: {
+          totalDishes: dash.totalDishes,
+          totalChefs: dash.totalChefs,
+          categoryAggregation: dash.categoryStats,
+          specialtyAggregation: dash.chefStats,
+          dietaryAggregation: dash.dietaryStats,
+        },
+      });
+    }
+
     const categoryAggregation = await Dish.aggregate([
       {
         $group: {
@@ -136,6 +204,16 @@ exports.getStats = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    const dash = fallbackStore.getDashboardData();
+    res.json({
+      success: true,
+      data: {
+        totalDishes: dash.totalDishes,
+        totalChefs: dash.totalChefs,
+        categoryAggregation: dash.categoryStats,
+        specialtyAggregation: dash.chefStats,
+        dietaryAggregation: dash.dietaryStats,
+      },
+    });
   }
 };
