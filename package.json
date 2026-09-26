@@ -8,10 +8,18 @@
     "dev": "node --watch server.js",
     "seed": "node db/seed/seed.js"
   },
-  "keywords": ["express", "mongodb", "mongoose", "ejs", "restaurant", "crud"],
+  "keywords": [
+    "express",
+    "mongodb",
+    "mongoose",
+    "ejs",
+    "restaurant",
+    "crud"
+  ],
   "author": "Full-Stack Developer",
   "license": "ISC",
   "dependencies": {
+    "@vercel/speed-insights": "^2.0.0",
     "connect-flash": "^0.1.1",
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",

@@ -3,46 +3,56 @@ const mongoose = require('mongoose');
 let mongoMemoryServer = null;
 
 /**
- * Connect to MongoDB with automatic fallback to in-memory server
- * if local MongoDB instance is not running.
+ * Connect to MongoDB with connection reuse for serverless (Vercel)
+ * and automatic fallback to in-memory server during local development.
  */
 async function connectDB() {
-  const uri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/restaurant_db';
+  // If already connected, reuse connection (critical for Serverless functions)
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
+
+  // Check both MONGODB_URI and MONGO_URI
+  const uri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/restaurant_db';
 
   try {
-    // Attempt connecting to the provided MongoDB URI with a short timeout
-    console.log(`Connecting to MongoDB at: ${uri}...`);
+    console.log('Connecting to MongoDB...');
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 2500,
+      serverSelectionTimeoutMS: 5000,
     });
-    console.log('MongoDB connected successfully to primary instance.');
+    console.log('MongoDB connected successfully.');
+    return mongoose.connection;
   } catch (err) {
-    console.warn('Could not connect to primary MongoDB instance.');
-    console.log('Starting in-memory MongoDB fallback server...');
-    
+    console.warn(`Could not connect to MongoDB instance: ${err.message}`);
+
+    // In production or on Vercel, do NOT attempt in-memory server (not supported in serverless)
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+      console.error('CRITICAL: MongoDB connection failed in production/Vercel. Please check MONGODB_URI and Atlas Network Access.');
+      throw err;
+    }
+
+    // Local development fallback to in-memory MongoDB
+    console.log('Attempting local in-memory MongoDB fallback server...');
     try {
       const { MongoMemoryServer } = require('mongodb-memory-server');
       mongoMemoryServer = await MongoMemoryServer.create();
       const memoryUri = mongoMemoryServer.getUri();
-      
+
       await mongoose.connect(memoryUri);
       console.log(`In-memory MongoDB started and connected at: ${memoryUri}`);
-      
+
       // Automatically seed if memory database is active
       const seedDatabase = require('./seed/seed');
       if (typeof seedDatabase.seedData === 'function') {
         console.log('Auto-populating in-memory database with sample data...');
         await seedDatabase.seedData();
       }
+      return mongoose.connection;
     } catch (memErr) {
       console.error('CRITICAL: Failed to connect to MongoDB and could not start in-memory server:', memErr.message);
-      throw memErr;
+      throw err;
     }
   }
-
-  mongoose.connection.on('error', (err) => {
-    console.error('Mongoose runtime connection error:', err);
-  });
 }
 
 async function closeDB() {

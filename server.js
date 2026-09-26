@@ -64,6 +64,16 @@ app.set('views', path.join(__dirname, 'views'));
 // Inject Flash & Global Context into all Templates
 app.use(flashMiddleware);
 
+// Ensure Database is connected before processing any requests (essential for Vercel Serverless)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Mount Application Routes
 app.use('/', indexRoutes);
 app.use('/dishes', dishRoutes);
