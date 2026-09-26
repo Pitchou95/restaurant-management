@@ -1,0 +1,167 @@
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-dark-border">
+    <div>
+      <h1 class="font-serif text-3xl font-extrabold text-white tracking-tight">Our Master Chefs & Culinary Team</h1>
+      <p class="text-sm text-slate-400 mt-1">Discover the visionaries commanding our kitchens and creating gastronomic art.</p>
+    </div>
+    
+    <a href="/chefs/new" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-sm shadow-md shadow-amber-500/20 transition-all">
+      <i class="fa-solid fa-user-plus text-xs"></i> Register New Chef
+    </a>
+  </div>
+
+  <!-- Search & Filter Bar -->
+  <div class="rounded-2xl bg-dark-surface border border-dark-border p-4 shadow-lg">
+    <form action="/chefs" method="GET" class="flex flex-col sm:flex-row gap-3">
+      
+      <div class="flex-1 relative">
+        <input
+          type="text"
+          name="search"
+          placeholder="Search by chef name, specialty, or bio..."
+          value="<%= typeof query !== 'undefined' && query.search ? query.search : '' %>"
+          class="w-full bg-dark-card border border-dark-border rounded-xl pl-9 pr-4 py-2 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-amber-500"
+        />
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </span>
+      </div>
+
+      <div class="sm:w-64">
+        <select
+          name="specialty"
+          class="w-full bg-dark-card border border-dark-border rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500"
+        >
+          <option value="all">All Specialties</option>
+          <% specialties.forEach(sp => { %>
+            <option value="<%= sp %>" <%= typeof query !== 'undefined' && query.specialty === sp ? 'selected' : '' %>><%= sp %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="submit"
+          class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-sm transition-colors"
+        >
+          Filter
+        </button>
+        <a
+          href="/chefs"
+          class="px-3 py-2 bg-dark-card border border-dark-border text-slate-400 hover:text-white rounded-xl text-sm transition-colors"
+        >
+          Reset
+        </a>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Chefs Grid -->
+  <% if (chefs.length === 0) { %>
+    <div class="rounded-2xl bg-dark-surface border border-dark-border p-12 text-center space-y-4">
+      <div class="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto text-2xl">
+        <i class="fa-solid fa-user-xmark"></i>
+      </div>
+      <h3 class="text-lg font-bold text-white">No chefs found</h3>
+      <p class="text-sm text-slate-400">Try adjusting your search criteria or register a new chef.</p>
+    </div>
+  <% } else { %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% chefs.forEach(chef => { %>
+        <div class="group rounded-2xl bg-dark-surface border border-dark-border overflow-hidden hover:border-amber-500/40 hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+          
+          <div class="p-6 space-y-4">
+            <!-- Avatar & Header -->
+            <div class="flex items-start gap-4">
+              <div class="relative">
+                <img
+                  src="<%= chef.avatarUrl %>"
+                  alt="<%= chef.name %>"
+                  class="w-16 h-16 rounded-2xl object-cover border-2 border-amber-500/40 group-hover:border-amber-500 transition-colors flex-shrink-0"
+                  onerror="this.src='https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=400&auto=format&fit=crop&q=60'"
+                />
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-amber-400"><%= chef.title %></span>
+                  <span class="text-xs text-amber-400 font-bold">★ <%= chef.rating %></span>
+                </div>
+                <h3 class="font-serif text-lg font-bold text-white group-hover:text-amber-400 transition-colors truncate">
+                  <a href="/chefs/<%= chef._id %>"><%= chef.name %></a>
+                </h3>
+                <p class="text-xs text-slate-400 truncate">
+                  <i class="fa-solid fa-kitchen-set text-slate-500 mr-1"></i><%= chef.specialty %>
+                </p>
+              </div>
+            </div>
+
+            <!-- Bio -->
+            <p class="text-xs text-slate-300 line-clamp-3 leading-relaxed">
+              <%= chef.bio %>
+            </p>
+
+            <!-- Metrics -->
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-dark-border/80 text-xs">
+              <div class="p-2 rounded-xl bg-dark-card border border-dark-border">
+                <span class="text-slate-400 block text-[11px]">Experience</span>
+                <span class="font-bold text-white"><%= chef.experienceYears %> Years</span>
+              </div>
+              <div class="p-2 rounded-xl bg-dark-card border border-dark-border">
+                <span class="text-slate-400 block text-[11px]">Specialized Dishes</span>
+                <span class="font-bold text-amber-400"><%= (chef.dishes || []).length %> Items</span>
+              </div>
+            </div>
+
+            <!-- Assigned dishes preview -->
+            <% if (chef.dishes && chef.dishes.length > 0) { %>
+              <div class="space-y-1">
+                <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Signatures:</span>
+                <div class="flex flex-wrap gap-1">
+                  <% chef.dishes.slice(0, 3).forEach(d => { %>
+                    <span class="text-[11px] px-2 py-0.5 rounded-lg bg-dark-card border border-dark-border text-slate-300 truncate max-w-[150px]">
+                      <%= d.name %>
+                    </span>
+                  <% }) %>
+                  <% if (chef.dishes.length > 3) { %>
+                    <span class="text-[11px] px-1.5 py-0.5 text-slate-500">+<%= chef.dishes.length - 3 %> more</span>
+                  <% } %>
+                </div>
+              </div>
+            <% } %>
+
+          </div>
+
+          <!-- Card Actions -->
+          <div class="p-4 bg-dark-card/60 border-t border-dark-border flex items-center justify-between">
+            <a href="/chefs/<%= chef._id %>" class="text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1">
+              Full Profile <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+
+            <div class="flex items-center space-x-2">
+              <a href="/chefs/<%= chef._id %>/edit" title="Edit Chef" class="p-1.5 rounded-lg bg-dark-surface border border-dark-border text-slate-300 hover:text-amber-400 hover:border-amber-500/40 transition-colors text-xs">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </a>
+
+              <button
+                type="button"
+                title="Delete Chef"
+                class="open-delete-modal p-1.5 rounded-lg bg-dark-surface border border-dark-border text-slate-400 hover:text-rose-400 hover:border-rose-500/40 transition-colors text-xs"
+                data-id="<%= chef._id %>"
+                data-name="Chef <%= chef.name %>"
+                data-action="/chefs/<%= chef._id %>"
+              >
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+</div>

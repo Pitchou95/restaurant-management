@@ -1,0 +1,47 @@
+<% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+  <div class="flash-alert flex items-center justify-between p-4 mb-4 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 shadow-lg backdrop-blur-sm transition-all duration-300">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
+        <i class="fa-solid fa-circle-check text-lg"></i>
+      </div>
+      <div>
+        <p class="font-medium text-sm"><%= success_msg %></p>
+      </div>
+    </div>
+    <button type="button" onclick="this.closest('.flash-alert').remove()" class="text-emerald-400 hover:text-emerald-100 p-1 transition-colors">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+<% } %>
+
+<% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+  <div class="flash-alert flex items-center justify-between p-4 mb-4 rounded-xl bg-rose-950/80 border border-rose-500/40 text-rose-200 shadow-lg backdrop-blur-sm transition-all duration-300">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0">
+        <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+      </div>
+      <div>
+        <p class="font-medium text-sm"><%= error_msg %></p>
+      </div>
+    </div>
+    <button type="button" onclick="this.closest('.flash-alert').remove()" class="text-rose-400 hover:text-rose-100 p-1 transition-colors">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+<% } %>
+
+<% if (typeof info_msg !== 'undefined' && info_msg.length > 0) { %>
+  <div class="flash-alert flex items-center justify-between p-4 mb-4 rounded-xl bg-blue-950/80 border border-blue-500/40 text-blue-200 shadow-lg backdrop-blur-sm transition-all duration-300">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0">
+        <i class="fa-solid fa-circle-info text-lg"></i>
+      </div>
+      <div>
+        <p class="font-medium text-sm"><%= info_msg %></p>
+      </div>
+    </div>
+    <button type="button" onclick="this.closest('.flash-alert').remove()" class="text-blue-400 hover:text-blue-100 p-1 transition-colors">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+<% } %>

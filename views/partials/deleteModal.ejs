@@ -1,0 +1,40 @@
+<!-- Accessible Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
+  <div class="relative w-full max-w-md rounded-2xl bg-dark-surface border border-dark-border shadow-2xl p-6 transform transition-all">
+    
+    <!-- Modal Header Icon -->
+    <div class="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-rose-500/10 text-rose-500 mb-4 border border-rose-500/20">
+      <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+    </div>
+
+    <!-- Title & Description -->
+    <div class="text-center">
+      <h3 class="text-lg font-bold text-white mb-2" id="deleteModalTitle">Confirm Deletion</h3>
+      <p class="text-sm text-slate-400 mb-6">
+        Are you sure you want to permanently delete <span id="deleteItemName" class="font-semibold text-rose-400">this item</span>? This will also cleanly update related entity references and cannot be undone.
+      </p>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-end space-x-3">
+      <button
+        type="button"
+        id="cancelDeleteBtn"
+        class="px-4 py-2 rounded-xl text-sm font-medium bg-dark-card border border-dark-border text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+      >
+        Cancel
+      </button>
+
+      <form id="deleteForm" method="POST" action="">
+        <input type="hidden" name="_method" value="DELETE">
+        <button
+          type="submit"
+          class="px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/30 transition-all"
+        >
+          <i class="fa-solid fa-trash-can mr-1.5"></i> Yes, Delete
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>

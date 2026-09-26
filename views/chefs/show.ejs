@@ -1,0 +1,130 @@
+<div class="max-w-5xl mx-auto space-y-8 py-2">
+
+  <!-- Header & Back Navigation -->
+  <div class="flex items-center justify-between">
+    <a href="/chefs" class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-amber-400 transition-colors">
+      <i class="fa-solid fa-arrow-left text-xs"></i> Back to Chefs Directory
+    </a>
+
+    <div class="flex items-center space-x-2">
+      <a href="/chefs/<%= chef._id %>/edit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-dark-surface border border-dark-border text-slate-200 hover:text-amber-400 hover:border-amber-500/40 text-xs font-semibold transition-all">
+        <i class="fa-solid fa-user-pen"></i> Edit Profile
+      </a>
+      <button
+        type="button"
+        class="open-delete-modal inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-semibold transition-all"
+        data-id="<%= chef._id %>"
+        data-name="Chef <%= chef.name %>"
+        data-action="/chefs/<%= chef._id %>"
+      >
+        <i class="fa-solid fa-trash-can"></i> Delete
+      </button>
+    </div>
+  </div>
+
+  <!-- Chef Profile Card -->
+  <div class="rounded-3xl bg-dark-surface border border-dark-border p-6 sm:p-8 shadow-2xl space-y-6">
+    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+      
+      <img
+        src="<%= chef.avatarUrl %>"
+        alt="<%= chef.name %>"
+        class="w-32 h-32 rounded-3xl object-cover border-4 border-amber-500 shadow-xl shadow-amber-500/20 flex-shrink-0"
+        onerror="this.src='https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=400&auto=format&fit=crop&q=60'"
+      />
+
+      <div class="flex-1 text-center sm:text-left space-y-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-400"><%= chef.title %></span>
+            <h1 class="font-serif text-3xl font-extrabold text-white"><%= chef.name %></h1>
+          </div>
+          <div class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold text-sm">
+            ★ <%= chef.rating %> Rating
+          </div>
+        </div>
+
+        <p class="text-xs font-semibold text-slate-300">
+          <i class="fa-solid fa-utensils text-amber-500 mr-1.5"></i>Specialty: <%= chef.specialty %>
+        </p>
+
+        <p class="text-sm text-slate-300 leading-relaxed pt-2">
+          <%= chef.bio %>
+        </p>
+
+        <div class="flex flex-wrap items-center gap-4 pt-4 text-xs text-slate-400">
+          <span class="flex items-center gap-1.5">
+            <i class="fa-solid fa-business-time text-amber-500"></i>
+            <strong class="text-white"><%= chef.experienceYears %></strong> Years Experience
+          </span>
+          <span class="flex items-center gap-1.5">
+            <i class="fa-solid fa-envelope text-amber-500"></i>
+            <a href="mailto:<%= chef.email %>" class="hover:text-amber-400 transition-colors"><%= chef.email %></a>
+          </span>
+          <% if (chef.phone) { %>
+            <span class="flex items-center gap-1.5">
+              <i class="fa-solid fa-phone text-amber-500"></i>
+              <%= chef.phone %>
+            </span>
+          <% } %>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mastered Dishes Section (Many-to-Many Relationship Display) -->
+  <div class="rounded-3xl bg-dark-surface border border-dark-border p-6 sm:p-8 space-y-6 shadow-xl">
+    <div class="flex items-center justify-between border-b border-dark-border pb-4">
+      <div>
+        <h2 class="font-serif text-2xl font-bold text-white">Signature Dishes Mastered</h2>
+        <p class="text-xs text-slate-400 mt-1">Menu creations designed and executed by Chef <%= chef.name %>.</p>
+      </div>
+      <a href="/dishes/new" class="text-xs font-semibold text-amber-400 hover:text-amber-300">
+        + Create New Dish
+      </a>
+    </div>
+
+    <% if (!chef.dishes || chef.dishes.length === 0) { %>
+      <div class="p-8 text-center text-sm text-slate-400">
+        This chef does not currently have any signature dishes assigned.
+        <a href="/chefs/<%= chef._id %>/edit" class="text-amber-400 underline font-semibold ml-1">Assign dishes</a>.
+      </div>
+    <% } else { %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% chef.dishes.forEach(dish => { %>
+          <div class="rounded-2xl bg-dark-card border border-dark-border overflow-hidden hover:border-amber-500/40 transition-all flex flex-col justify-between">
+            <div>
+              <div class="relative h-44 overflow-hidden bg-slate-950">
+                <img
+                  src="<%= dish.imageUrl %>"
+                  alt="<%= dish.name %>"
+                  class="w-full h-full object-cover"
+                  onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop&q=60'"
+                />
+                <div class="absolute bottom-2 right-2 px-2.5 py-0.5 rounded-lg bg-dark-bg/90 border border-dark-border text-amber-400 font-extrabold text-sm">
+                  $<%= dish.price.toFixed(2) %>
+                </div>
+              </div>
+
+              <div class="p-4 space-y-2">
+                <span class="text-[10px] font-semibold text-amber-500 uppercase tracking-wider"><%= dish.category %></span>
+                <h3 class="font-serif text-base font-bold text-white truncate">
+                  <a href="/dishes/<%= dish._id %>" class="hover:text-amber-400 transition-colors"><%= dish.name %></a>
+                </h3>
+              </div>
+            </div>
+
+            <div class="p-3 bg-dark-surface/60 border-t border-dark-border flex items-center justify-between text-xs">
+              <a href="/dishes/<%= dish._id %>" class="text-amber-400 font-semibold hover:text-white transition-colors">
+                View Dish &rarr;
+              </a>
+              <span class="text-slate-500 text-[11px]">Assigned</span>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+</div>

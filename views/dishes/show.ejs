@@ -1,0 +1,238 @@
+<div class="max-w-5xl mx-auto space-y-8 py-2">
+
+  <!-- Breadcrumb & Nav -->
+  <div class="flex items-center justify-between">
+    <a href="/dishes" class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-amber-400 transition-colors">
+      <i class="fa-solid fa-arrow-left text-xs"></i> Back to Menu Catalog
+    </a>
+
+    <div class="flex items-center space-x-2">
+      <a href="/dishes/<%= dish._id %>/edit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-dark-surface border border-dark-border text-slate-200 hover:text-amber-400 hover:border-amber-500/40 text-xs font-semibold transition-all">
+        <i class="fa-solid fa-pen-to-square"></i> Edit
+      </a>
+      <button
+        type="button"
+        class="open-delete-modal inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-semibold transition-all"
+        data-id="<%= dish._id %>"
+        data-name="<%= dish.name %>"
+        data-action="/dishes/<%= dish._id %>"
+      >
+        <i class="fa-solid fa-trash-can"></i> Delete
+      </button>
+    </div>
+  </div>
+
+  <!-- Hero Details Card -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 rounded-3xl bg-dark-surface border border-dark-border overflow-hidden shadow-2xl">
+    
+    <!-- Image with overlay -->
+    <div class="relative h-72 md:h-full min-h-[340px] bg-slate-950">
+      <img
+        src="<%= dish.imageUrl %>"
+        alt="<%= dish.name %>"
+        class="w-full h-full object-cover"
+        onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop&q=60'"
+      />
+      <div class="absolute inset-0 bg-gradient-to-t from-dark-surface/90 via-transparent to-transparent"></div>
+
+      <div class="absolute top-4 left-4 flex flex-wrap gap-2">
+        <span class="px-3 py-1 rounded-xl text-xs font-bold bg-dark-bg/90 border border-dark-border text-white backdrop-blur-md">
+          <%= dish.category %>
+        </span>
+        <% if (dish.isChefSpecial) { %>
+          <span class="px-3 py-1 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20">
+            ★ Chef's Signature Special
+          </span>
+        <% } %>
+        <% if (dish.isVegetarian) { %>
+          <span class="px-3 py-1 rounded-xl text-xs font-semibold bg-emerald-950/90 border border-emerald-500/40 text-emerald-300 backdrop-blur-md">
+            <i class="fa-solid fa-leaf mr-1"></i> Vegetarian
+          </span>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Dish Metadata & Content -->
+    <div class="p-6 md:p-8 flex flex-col justify-between space-y-6">
+      <div class="space-y-4">
+        
+        <div class="flex items-center justify-between">
+          <span class="text-xs uppercase font-bold tracking-widest text-amber-400">
+            <i class="fa-solid fa-earth-americas mr-1"></i> <%= dish.cuisine %> Cuisine
+          </span>
+          <div class="flex items-center gap-1.5 text-amber-400 font-extrabold text-sm">
+            <i class="fa-solid fa-star"></i>
+            <span><%= dish.rating %></span>
+            <span class="text-xs text-slate-400 font-normal">(<%= dish.reviewsCount %> reviews)</span>
+          </div>
+        </div>
+
+        <h1 class="font-serif text-3xl font-extrabold text-white leading-tight">
+          <%= dish.name %>
+        </h1>
+
+        <div class="text-3xl font-extrabold text-amber-400">
+          $<%= dish.price.toFixed(2) %>
+        </div>
+
+        <p class="text-slate-300 text-sm leading-relaxed">
+          <%= dish.description %>
+        </p>
+
+        <!-- Metrics Grid -->
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <div class="p-3 rounded-xl bg-dark-card border border-dark-border">
+            <span class="text-xs text-slate-400 block font-medium">Preparation Time</span>
+            <span class="text-base font-bold text-white mt-0.5 inline-flex items-center gap-1.5">
+              <i class="fa-regular fa-clock text-amber-500"></i> <%= dish.prepTime %> minutes
+            </span>
+          </div>
+          <div class="p-3 rounded-xl bg-dark-card border border-dark-border">
+            <span class="text-xs text-slate-400 block font-medium">Caloric Energy</span>
+            <span class="text-base font-bold text-white mt-0.5 inline-flex items-center gap-1.5">
+              <i class="fa-solid fa-fire text-amber-500"></i> <%= dish.calories %> kcal
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-xs text-slate-500 pt-4 border-t border-dark-border flex items-center justify-between">
+        <span>Added on <%= new Date(dish.createdAt).toLocaleDateString() %></span>
+        <span>ID: <code class="font-mono text-[10px] text-slate-400"><%= dish._id %></code></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Master Chefs Preparing This Dish (Many-to-Many Relationship Section) -->
+  <div class="rounded-3xl bg-dark-surface border border-dark-border p-6 md:p-8 space-y-6 shadow-xl">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="font-serif text-xl font-bold text-white">Master Chefs Responsible</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Culinary professionals specialized in crafting this signature dish.</p>
+      </div>
+      <a href="/chefs" class="text-xs font-semibold text-amber-400 hover:text-amber-300">
+        All Chefs &rarr;
+      </a>
+    </div>
+
+    <% if (dish.chefs && dish.chefs.length > 0) { %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <% dish.chefs.forEach(ch => { %>
+          <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-dark-card border border-dark-border hover:border-amber-500/40 transition-colors">
+            <img
+              src="<%= ch.avatarUrl %>"
+              alt="<%= ch.name %>"
+              class="w-12 h-12 rounded-xl object-cover border border-amber-500/30 flex-shrink-0"
+              onerror="this.src='https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=400&auto=format&fit=crop&q=60'"
+            />
+            <div class="min-w-0 flex-1">
+              <h4 class="font-bold text-sm text-white hover:text-amber-400 transition-colors truncate">
+                <a href="/chefs/<%= ch._id %>"><%= ch.name %></a>
+              </h4>
+              <p class="text-xs text-amber-400 font-medium truncate"><%= ch.title %></p>
+              <p class="text-[11px] text-slate-400 truncate"><%= ch.specialty %></p>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="p-6 rounded-2xl bg-dark-card border border-dark-border text-center text-sm text-slate-400">
+        No chefs are currently assigned to this dish.
+        <a href="/dishes/<%= dish._id %>/edit" class="text-amber-400 font-semibold underline ml-1">Edit to assign a chef</a>.
+      </div>
+    <% } %>
+  </div>
+
+  <!-- Customer Reviews & Star Rating System (Bonus Feature) -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- Submit Review Form -->
+    <div class="lg:col-span-1 rounded-3xl bg-dark-surface border border-dark-border p-6 shadow-xl space-y-4">
+      <h3 class="font-serif text-lg font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-star text-amber-500 text-sm"></i> Add Your Review
+      </h3>
+      <p class="text-xs text-slate-400">Share your culinary experience with this dish.</p>
+
+      <form action="/dishes/<%= dish._id %>/reviews" method="POST" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Your Name</label>
+          <input
+            type="text"
+            name="authorName"
+            required
+            placeholder="e.g. John Doe"
+            class="w-full bg-dark-card border border-dark-border rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Rating</label>
+          <select
+            name="rating"
+            required
+            class="w-full bg-dark-card border border-dark-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
+          >
+            <option value="5">★★★★★ (5 Stars - Exceptional)</option>
+            <option value="4">★★★★☆ (4 Stars - Very Good)</option>
+            <option value="3">★★★☆☆ (3 Stars - Average)</option>
+            <option value="2">★★☆☆☆ (2 Stars - Mediocre)</option>
+            <option value="1">★☆☆☆☆ (1 Star - Poor)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Comments</label>
+          <textarea
+            name="comment"
+            rows="3"
+            required
+            placeholder="Describe flavors, presentation, and dining satisfaction..."
+            class="w-full bg-dark-card border border-dark-border rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          ></textarea>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-sm transition-colors shadow-md shadow-amber-500/20"
+        >
+          Submit Review
+        </button>
+      </form>
+    </div>
+
+    <!-- Review Feed -->
+    <div class="lg:col-span-2 rounded-3xl bg-dark-surface border border-dark-border p-6 shadow-xl space-y-4">
+      <div class="flex items-center justify-between border-b border-dark-border pb-3">
+        <h3 class="font-serif text-lg font-bold text-white">Customer Reviews (<%= reviews.length %>)</h3>
+        <span class="text-xs text-slate-400">Verified Diner Feedback</span>
+      </div>
+
+      <% if (reviews.length === 0) { %>
+        <div class="py-8 text-center text-sm text-slate-400 space-y-2">
+          <p>No customer reviews yet. Be the first gourmet to review this dish!</p>
+        </div>
+      <% } else { %>
+        <div class="space-y-3 max-h-[380px] overflow-y-auto pr-2">
+          <% reviews.forEach(rev => { %>
+            <div class="p-4 rounded-2xl bg-dark-card border border-dark-border space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-bold text-white"><%= rev.authorName %></span>
+                <div class="text-amber-400 text-xs">
+                  <% for(let s = 1; s <= 5; s++) { %>
+                    <i class="<%= s <= rev.rating ? 'fa-solid' : 'fa-regular' %> fa-star"></i>
+                  <% } %>
+                </div>
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed"><%= rev.comment %></p>
+              <div class="text-[10px] text-slate-500">
+                <%= new Date(rev.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+
+  </div>
+
+</div>

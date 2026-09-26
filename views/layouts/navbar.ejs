@@ -1,0 +1,126 @@
+<header class="sticky top-0 z-40 backdrop-blur-md bg-dark-bg/85 border-b border-dark-border shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16 gap-4">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-8">
+        <a href="/" class="flex items-center gap-3 group focus:outline-none">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-bold text-lg shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform duration-200">
+            <i class="fa-solid fa-utensils"></i>
+          </div>
+          <span class="font-serif text-xl font-bold tracking-tight text-white group-hover:text-amber-400 transition-colors">
+            Gourmet<span class="text-amber-500">Hub</span>
+          </span>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <nav class="hidden md:flex items-center space-x-1">
+          <a href="/" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors <%= currentPath === '/' ? 'text-amber-400 bg-dark-surface' : 'text-slate-300 hover:text-white hover:bg-dark-surface/60' %>">
+            <i class="fa-solid fa-house mr-1.5 text-xs"></i> Home
+          </a>
+          <a href="/dishes" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors <%= currentPath.startsWith('/dishes') ? 'text-amber-400 bg-dark-surface' : 'text-slate-300 hover:text-white hover:bg-dark-surface/60' %>">
+            <i class="fa-solid fa-bowl-food mr-1.5 text-xs"></i> Menu Items
+          </a>
+          <a href="/chefs" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors <%= currentPath.startsWith('/chefs') ? 'text-amber-400 bg-dark-surface' : 'text-slate-300 hover:text-white hover:bg-dark-surface/60' %>">
+            <i class="fa-solid fa-user-tie mr-1.5 text-xs"></i> Chefs
+          </a>
+          <a href="/dashboard" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors <%= currentPath === '/dashboard' ? 'text-amber-400 bg-dark-surface' : 'text-slate-300 hover:text-white hover:bg-dark-surface/60' %>">
+            <i class="fa-solid fa-chart-pie mr-1.5 text-xs"></i> Analytics
+          </a>
+        </nav>
+      </div>
+
+      <!-- Quick Search Form -->
+      <div class="hidden lg:flex flex-1 max-w-xs items-center">
+        <form action="/dishes" method="GET" class="w-full relative">
+          <input
+            type="text"
+            name="search"
+            placeholder="Search dishes or cuisine..."
+            value="<%= typeof query !== 'undefined' && query.search ? query.search : '' %>"
+            class="w-full bg-dark-surface border border-dark-border rounded-xl pl-9 pr-4 py-1.5 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+          />
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+        </form>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="hidden sm:flex items-center space-x-3">
+        <a href="/dishes/export/csv" title="Export Menu as CSV" class="p-2 rounded-xl bg-dark-surface border border-dark-border text-slate-300 hover:text-amber-400 hover:border-amber-500/50 transition-colors">
+          <i class="fa-solid fa-file-csv"></i>
+        </a>
+
+        <!-- Add Dropdown / Primary Action -->
+        <div class="relative group">
+          <button type="button" class="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-semibold px-4 py-2 rounded-xl text-sm shadow-md shadow-amber-500/20 hover:shadow-amber-500/30 transition-all duration-200">
+            <i class="fa-solid fa-plus text-xs"></i>
+            <span>Create New</span>
+            <i class="fa-solid fa-chevron-down text-xs opacity-70"></i>
+          </button>
+          <!-- Hover Dropdown Menu -->
+          <div class="absolute right-0 mt-2 w-48 bg-dark-surface border border-dark-border rounded-xl shadow-xl py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+            <a href="/dishes/new" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-200 hover:bg-dark-card hover:text-amber-400 transition-colors">
+              <i class="fa-solid fa-utensils text-amber-500"></i> New Menu Item
+            </a>
+            <a href="/chefs/new" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-200 hover:bg-dark-card hover:text-amber-400 transition-colors">
+              <i class="fa-solid fa-hat-chef text-amber-500"></i> Register Chef
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <div class="flex sm:hidden items-center">
+        <button id="mobileMenuBtn" type="button" class="p-2 rounded-xl bg-dark-surface border border-dark-border text-slate-300 hover:text-white focus:outline-none" aria-label="Toggle navigation menu">
+          <i class="fa-solid fa-bars text-lg" id="menuIcon"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mobile Dropdown Menu Drawer -->
+  <div id="mobileMenu" class="sm:hidden hidden border-t border-dark-border bg-dark-bg/95 backdrop-blur-md px-4 pt-3 pb-5 space-y-3">
+    <!-- Mobile Search Form -->
+    <form action="/dishes" method="GET" class="relative">
+      <input
+        type="text"
+        name="search"
+        placeholder="Search dishes or cuisine..."
+        class="w-full bg-dark-surface border border-dark-border rounded-xl pl-9 pr-4 py-2 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-amber-500"
+      />
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </span>
+    </form>
+
+    <div class="flex flex-col space-y-1">
+      <a href="/" class="px-3 py-2 rounded-lg text-base font-medium <%= currentPath === '/' ? 'text-amber-400 bg-dark-surface' : 'text-slate-300 hover:text-white' %>">
+        <i class="fa-solid fa-house mr-2"></i> Home
+      </a>
+      <a href="/dishes" class="px-3 py-2 rounded-lg text-base font-medium <%= currentPath.startsWith('/dishes') ? 'text-amber-400 bg-dark-surface' : 'text-slate-300 hover:text-white' %>">
+        <i class="fa-solid fa-bowl-food mr-2"></i> Menu Items
+      </a>
+      <a href="/chefs" class="px-3 py-2 rounded-lg text-base font-medium <%= currentPath.startsWith('/chefs') ? 'text-amber-400 bg-dark-surface' : 'text-slate-300 hover:text-white' %>">
+        <i class="fa-solid fa-user-tie mr-2"></i> Chefs
+      </a>
+      <a href="/dashboard" class="px-3 py-2 rounded-lg text-base font-medium <%= currentPath === '/dashboard' ? 'text-amber-400 bg-dark-surface' : 'text-slate-300 hover:text-white' %>">
+        <i class="fa-solid fa-chart-pie mr-2"></i> Analytics Dashboard
+      </a>
+    </div>
+
+    <div class="pt-3 border-t border-dark-border flex flex-col gap-2">
+      <a href="/dishes/new" class="w-full text-center bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold px-4 py-2 rounded-xl text-sm transition-colors">
+        <i class="fa-solid fa-plus mr-1"></i> Add New Dish
+      </a>
+      <a href="/chefs/new" class="w-full text-center bg-dark-surface border border-dark-border text-slate-200 hover:text-white px-4 py-2 rounded-xl text-sm transition-colors">
+        <i class="fa-solid fa-user-plus mr-1"></i> Register New Chef
+      </a>
+      <a href="/dishes/export/csv" class="w-full text-center bg-dark-card text-slate-300 hover:text-amber-400 px-4 py-2 rounded-xl text-sm transition-colors">
+        <i class="fa-solid fa-file-csv mr-1"></i> Export Menu (CSV)
+      </a>
+    </div>
+  </div>
+</header>

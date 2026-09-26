@@ -1,0 +1,222 @@
+<div class="space-y-6">
+
+  <!-- Header & Toolbar -->
+  <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-dark-border">
+    <div>
+      <h1 class="font-serif text-3xl font-extrabold text-white tracking-tight">Culinary Menu Catalog</h1>
+      <p class="text-sm text-slate-400 mt-1">Browse gourmet creations, filter by master chef or category, and manage dishes.</p>
+    </div>
+    
+    <div class="flex items-center gap-3 w-full sm:w-auto">
+      <a href="/dishes/export/csv" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-dark-surface border border-dark-border hover:border-amber-500/40 text-slate-300 hover:text-white text-sm font-medium transition-all">
+        <i class="fa-solid fa-file-csv text-amber-500"></i> Export CSV
+      </a>
+      <a href="/dishes/new" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-sm shadow-md shadow-amber-500/20 transition-all">
+        <i class="fa-solid fa-plus text-xs"></i> Add New Dish
+      </a>
+    </div>
+  </div>
+
+  <!-- Advanced Search & Filter Bar -->
+  <div class="rounded-2xl bg-dark-surface border border-dark-border p-4 shadow-lg">
+    <form action="/dishes" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      
+      <!-- Keyword Search -->
+      <div class="lg:col-span-2 relative">
+        <input
+          type="text"
+          name="search"
+          placeholder="Search by dish name, description, cuisine..."
+          value="<%= typeof query !== 'undefined' && query.search ? query.search : '' %>"
+          class="w-full bg-dark-card border border-dark-border rounded-xl pl-9 pr-4 py-2 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+        />
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </span>
+      </div>
+
+      <!-- Category Filter -->
+      <div>
+        <select
+          name="category"
+          class="w-full bg-dark-card border border-dark-border rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500"
+        >
+          <option value="all">All Categories</option>
+          <% categories.forEach(cat => { %>
+            <option value="<%= cat %>" <%= typeof query !== 'undefined' && query.category === cat ? 'selected' : '' %>><%= cat %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <!-- Chef Filter -->
+      <div>
+        <select
+          name="chef"
+          class="w-full bg-dark-card border border-dark-border rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500"
+        >
+          <option value="all">All Master Chefs</option>
+          <% allChefs.forEach(c => { %>
+            <option value="<%= c._id %>" <%= typeof query !== 'undefined' && query.chef === c._id.toString() ? 'selected' : '' %>><%= c.name %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <!-- Sort & Submit Buttons -->
+      <div class="flex items-center gap-2">
+        <select
+          name="sort"
+          class="w-full bg-dark-card border border-dark-border rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500"
+        >
+          <option value="newest" <%= typeof query !== 'undefined' && query.sort === 'newest' ? 'selected' : '' %>>Newest First</option>
+          <option value="price-asc" <%= typeof query !== 'undefined' && query.sort === 'price-asc' ? 'selected' : '' %>>Price: Low to High</option>
+          <option value="price-desc" <%= typeof query !== 'undefined' && query.sort === 'price-desc' ? 'selected' : '' %>>Price: High to Low</option>
+          <option value="rating" <%= typeof query !== 'undefined' && query.sort === 'rating' ? 'selected' : '' %>>Highest Rated</option>
+        </select>
+
+        <button
+          type="submit"
+          class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-sm transition-colors flex items-center justify-center"
+          title="Apply Filters"
+        >
+          <i class="fa-solid fa-filter"></i>
+        </button>
+
+        <a
+          href="/dishes"
+          class="px-3 py-2 bg-dark-card border border-dark-border text-slate-400 hover:text-white rounded-xl text-sm transition-colors flex items-center justify-center"
+          title="Reset Filters"
+        >
+          <i class="fa-solid fa-rotate-left"></i>
+        </a>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Dishes Grid (6 Items per page) -->
+  <% if (dishes.length === 0) { %>
+    <div class="rounded-2xl bg-dark-surface border border-dark-border p-12 text-center space-y-4">
+      <div class="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto text-2xl">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </div>
+      <h3 class="text-lg font-bold text-white">No dishes found matching your criteria</h3>
+      <p class="text-sm text-slate-400 max-w-md mx-auto">Try clearing your search query or filters to view the complete catalog.</p>
+      <a href="/dishes" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-dark-card border border-dark-border text-amber-400 hover:text-amber-300 text-sm font-medium">
+        <i class="fa-solid fa-rotate-left text-xs"></i> Reset All Filters
+      </a>
+    </div>
+  <% } else { %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% dishes.forEach(dish => { %>
+        <div class="group rounded-2xl bg-dark-surface border border-dark-border overflow-hidden hover:border-amber-500/40 hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+          
+          <!-- Image Section -->
+          <div>
+            <div class="relative h-52 overflow-hidden bg-slate-950">
+              <img
+                src="<%= dish.imageUrl %>"
+                alt="<%= dish.name %>"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+                onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop&q=60'"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-dark-surface via-transparent to-transparent"></div>
+
+              <!-- Badges -->
+              <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                <span class="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-dark-bg/85 border border-dark-border text-slate-200 backdrop-blur-md">
+                  <%= dish.category %>
+                </span>
+                <% if (dish.isChefSpecial) { %>
+                  <span class="px-2 py-0.5 rounded-lg text-xs font-semibold bg-amber-500 text-slate-950 shadow-md">
+                    ★ Special
+                  </span>
+                <% } %>
+                <% if (dish.isVegetarian) { %>
+                  <span class="px-2 py-0.5 rounded-lg text-xs font-medium bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 backdrop-blur-md">
+                    <i class="fa-solid fa-leaf text-xs"></i>
+                  </span>
+                <% } %>
+              </div>
+
+              <!-- Price Tag -->
+              <div class="absolute bottom-3 right-3 px-3 py-1 rounded-xl bg-dark-bg/90 border border-dark-border text-amber-400 font-extrabold text-base backdrop-blur-md shadow-md">
+                $<%= dish.price.toFixed(2) %>
+              </div>
+            </div>
+
+            <!-- Body Details -->
+            <div class="p-5 space-y-3">
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <span class="flex items-center gap-1"><i class="fa-solid fa-earth-americas text-xs text-slate-500"></i> <%= dish.cuisine %></span>
+                <span class="flex items-center text-amber-400 font-bold"><i class="fa-solid fa-star text-xs mr-1"></i><%= dish.rating %></span>
+              </div>
+
+              <h3 class="font-serif text-lg font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-1">
+                <a href="/dishes/<%= dish._id %>"><%= dish.name %></a>
+              </h3>
+
+              <p class="text-xs text-slate-300 line-clamp-2 leading-relaxed">
+                <%= dish.description %>
+              </p>
+
+              <!-- Prep time & Calories -->
+              <div class="flex items-center gap-3 text-xs text-slate-400 pt-1">
+                <span><i class="fa-regular fa-clock text-amber-500/80 mr-1"></i><%= dish.prepTime %> min</span>
+                <span><i class="fa-solid fa-fire text-amber-500/80 mr-1"></i><%= dish.calories %> kcal</span>
+              </div>
+
+              <!-- Chefs assigned -->
+              <div class="pt-3 border-t border-dark-border/80">
+                <span class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold block mb-1.5">Prepared By</span>
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <% if (dish.chefs && dish.chefs.length > 0) { %>
+                    <% dish.chefs.forEach(ch => { %>
+                      <a href="/chefs/<%= ch._id %>" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-dark-card border border-dark-border text-xs text-slate-300 hover:text-amber-400 hover:border-amber-500/40 transition-colors">
+                        <img src="<%= ch.avatarUrl %>" alt="<%= ch.name %>" class="w-4 h-4 rounded-full object-cover">
+                        <span class="truncate max-w-[100px]"><%= ch.name %></span>
+                      </a>
+                    <% }) %>
+                  <% } else { %>
+                    <span class="text-xs text-slate-500 italic">No chef assigned</span>
+                  <% } %>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Card Actions Footer -->
+          <div class="p-4 bg-dark-card/60 border-t border-dark-border flex items-center justify-between">
+            <a href="/dishes/<%= dish._id %>" class="text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1">
+              View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+
+            <div class="flex items-center space-x-2">
+              <a href="/dishes/<%= dish._id %>/edit" title="Edit Dish" class="p-1.5 rounded-lg bg-dark-surface border border-dark-border text-slate-300 hover:text-amber-400 hover:border-amber-500/40 transition-colors text-xs">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </a>
+
+              <!-- Delete Trigger Button (Opens Confirmation Modal) -->
+              <button
+                type="button"
+                title="Delete Dish"
+                class="open-delete-modal p-1.5 rounded-lg bg-dark-surface border border-dark-border text-slate-400 hover:text-rose-400 hover:border-rose-500/40 transition-colors text-xs"
+                data-id="<%= dish._id %>"
+                data-name="<%= dish.name %>"
+                data-action="/dishes/<%= dish._id %>"
+              >
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      <% }) %>
+    </div>
+
+    <!-- Reusable Pagination Component -->
+    <%- include('../partials/pagination') %>
+  <% } %>
+
+</div>

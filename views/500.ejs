@@ -1,0 +1,25 @@
+<div class="min-h-[60vh] flex flex-col items-center justify-center text-center p-6 space-y-6">
+  <div class="w-24 h-24 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-500 flex items-center justify-center text-4xl shadow-xl shadow-rose-500/10">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+  </div>
+
+  <div class="space-y-2 max-w-md">
+    <span class="text-xs font-bold uppercase tracking-widest text-rose-400">500 Server Error</span>
+    <h1 class="font-serif text-3xl sm:text-4xl font-extrabold text-white">Kitchen Mishap</h1>
+    <p class="text-sm text-slate-400">
+      <%= typeof message !== 'undefined' ? message : 'An unexpected error occurred while processing your request in our culinary servers.' %>
+    </p>
+  </div>
+
+  <% if (typeof error !== 'undefined' && error.stack) { %>
+    <div class="w-full max-w-2xl bg-slate-950 p-4 rounded-xl border border-rose-900/40 text-left overflow-x-auto text-xs font-mono text-rose-300">
+      <pre><%= error.stack %></pre>
+    </div>
+  <% } %>
+
+  <div class="flex items-center gap-3">
+    <a href="/" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-sm transition-colors">
+      <i class="fa-solid fa-house mr-1"></i> Return Home
+    </a>
+  </div>
+</div>

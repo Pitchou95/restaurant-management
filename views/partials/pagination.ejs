@@ -1,0 +1,65 @@
+<% if (typeof totalPages !== 'undefined' && totalPages > 1) { 
+  // Helper to build pagination URL while keeping search, category, etc.
+  function buildPageUrl(pageNum) {
+    const params = new URLSearchParams();
+    if (typeof query !== 'undefined') {
+      Object.keys(query).forEach(key => {
+        if (key !== 'page' && query[key]) {
+          params.set(key, query[key]);
+        }
+      });
+    }
+    params.set('page', pageNum);
+    return '?' + params.toString();
+  }
+%>
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-dark-border mt-8">
+    <div class="text-sm text-slate-400">
+      Showing <span class="font-medium text-slate-200"><%= (currentPage - 1) * limit + 1 %></span> to
+      <span class="font-medium text-slate-200"><%= Math.min(currentPage * limit, totalDishes) %></span> of
+      <span class="font-medium text-slate-200"><%= totalDishes %></span> items
+      <span class="text-xs text-amber-500/90 ml-1">(6 items / page)</span>
+    </div>
+
+    <div class="inline-flex items-center gap-1.5">
+      <!-- Previous Page Button -->
+      <% if (currentPage > 1) { %>
+        <a href="<%= buildPageUrl(currentPage - 1) %>" class="px-3.5 py-2 rounded-xl bg-dark-surface border border-dark-border text-slate-300 hover:text-white hover:border-amber-500/40 text-sm font-medium transition-all">
+          <i class="fa-solid fa-chevron-left mr-1 text-xs"></i> Prev
+        </a>
+      <% } else { %>
+        <span class="px-3.5 py-2 rounded-xl bg-dark-surface/40 border border-dark-border/40 text-slate-600 text-sm font-medium cursor-not-allowed">
+          <i class="fa-solid fa-chevron-left mr-1 text-xs"></i> Prev
+        </span>
+      <% } %>
+
+      <!-- Page Number Pills -->
+      <div class="flex items-center gap-1">
+        <% for (let p = 1; p <= totalPages; p++) { %>
+          <% if (p === currentPage) { %>
+            <span class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-500 text-slate-950 font-bold text-sm shadow-md shadow-amber-500/20">
+              <%= p %>
+            </span>
+          <% } else if (p <= 3 || p >= totalPages - 1 || Math.abs(p - currentPage) <= 1) { %>
+            <a href="<%= buildPageUrl(p) %>" class="w-9 h-9 flex items-center justify-center rounded-xl bg-dark-surface border border-dark-border text-slate-300 hover:text-white hover:border-amber-500/40 text-sm font-medium transition-all">
+              <%= p %>
+            </a>
+          <% } else if (p === 4 || p === totalPages - 2) { %>
+            <span class="w-8 text-center text-slate-500 text-xs">...</span>
+          <% } %>
+        <% } %>
+      </div>
+
+      <!-- Next Page Button -->
+      <% if (currentPage < totalPages) { %>
+        <a href="<%= buildPageUrl(currentPage + 1) %>" class="px-3.5 py-2 rounded-xl bg-dark-surface border border-dark-border text-slate-300 hover:text-white hover:border-amber-500/40 text-sm font-medium transition-all">
+          Next <i class="fa-solid fa-chevron-right ml-1 text-xs"></i>
+        </a>
+      <% } else { %>
+        <span class="px-3.5 py-2 rounded-xl bg-dark-surface/40 border border-dark-border/40 text-slate-600 text-sm font-medium cursor-not-allowed">
+          Next <i class="fa-solid fa-chevron-right ml-1 text-xs"></i>
+        </span>
+      <% } %>
+    </div>
+  </div>
+<% } %>
